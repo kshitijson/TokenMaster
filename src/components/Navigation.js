@@ -1,10 +1,16 @@
 import { ethers } from 'ethers'
+import { useState } from 'react'
 
-const Navigation = ({ account, setAccount }) => {
+const Navigation = ({ account, setAccount, onError }) => {
   const connectHandler = async () => {
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
-    const account = ethers.utils.getAddress(accounts[0])
-    setAccount(account)
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+      const account = ethers.utils.getAddress(accounts[0])
+      setAccount(account)
+    } catch (error) {
+      console.log(error);
+      onError("Error");
+    }
   }
 
   return (

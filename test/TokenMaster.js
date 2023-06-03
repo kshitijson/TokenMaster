@@ -1,132 +1,139 @@
-const { expect } = require("chai")
+const { expect } = require("chai");
+const { ethers } = require("hardhat")
 
 const NAME = "TokenMaster"
 const SYMBOL = "TM"
 
-const OCCASION_NAME = "ETH Texas"
-const OCCASION_COST = ethers.utils.parseUnits('1', 'ether')
-const OCCASION_MAX_TICKETS = 100
-const OCCASION_DATE = "Apr 27"
-const OCCASION_TIME = "10:00AM CST"
-const OCCASION_LOCATION = "Austin, Texas"
-
 describe("TokenMaster", () => {
-  let tokenMaster
-  let deployer, buyer
+
+  let tokenMaster;
+  let provider;
+  let buyer;
+
+  const EVENT_NAME = "Pratishtha";
+  const EVENT_COST = ethers.utils.parseUnits('0.2', 'ether');
+  const EVENT_MAX_TICKETS = 100;
+  const EVENT_DATE = "March 09";
+  const EVENT_TIME = "10:00 AM IST";
+  const EVENT_LOCATION = "SAKEC Campus, Govandi";
+  
 
   beforeEach(async () => {
-    // Setup accounts
-    [deployer, buyer] = await ethers.getSigners()
 
-    // Deploy contract
-    const TokenMaster = await ethers.getContractFactory("TokenMaster")
-    tokenMaster = await TokenMaster.deploy(NAME, SYMBOL)
+    [provider, buyer] = await ethers.getSigners();  // accounts addresses
+    const TokenMaster = await ethers.getContractFactory("TokenMaster");  // locating the  smart contract TokenMaster
+    tokenMaster = await TokenMaster.deploy(NAME, SYMBOL);  // deployong smart contract and initializing it to tokenMaster for accessing the deployed SC
 
-    const transaction = await tokenMaster.connect(deployer).list(
-      OCCASION_NAME,
-      OCCASION_COST,
-      OCCASION_MAX_TICKETS,
-      OCCASION_DATE,
-      OCCASION_TIME,
-      OCCASION_LOCATION
+    // tokenMaster.connect  ==>  connect to the deployed smart contract for accessing smart contract functions eg. list()
+
+    let transaction = await tokenMaster.connect(provider).list(
+      EVENT_NAME,
+      EVENT_COST,
+      EVENT_MAX_TICKETS,
+      EVENT_DATE,
+      EVENT_TIME,
+      EVENT_LOCATION
     )
 
+    // .wait()  ==>  waits till the transaction is included in a block and added to the blockchain
     await transaction.wait()
   })
 
-  describe("Deployment", () => {
+  describe("deployment", () => {
+
     it("Sets the name", async () => {
-      expect(await tokenMaster.name()).to.equal(NAME)
+      expect(await tokenMaster.name()).to.equal(NAME);
     })
 
     it("Sets the symbol", async () => {
-      expect(await tokenMaster.symbol()).to.equal(SYMBOL)
+      expect(await tokenMaster.symbol()).to.equal(SYMBOL);
     })
 
-    it("Sets the owner", async () => {
-      expect(await tokenMaster.owner()).to.equal(deployer.address)
+    it("Sets owner", async () => {
+      expect(await tokenMaster.owner()).to.equal(provider.address)
     })
   })
 
-  describe("Occasions", () => {
-    it('Returns occasions attributes', async () => {
-      const occasion = await tokenMaster.getOccasion(1)
-      expect(occasion.id).to.be.equal(1)
-      expect(occasion.name).to.be.equal(OCCASION_NAME)
-      expect(occasion.cost).to.be.equal(OCCASION_COST)
-      expect(occasion.tickets).to.be.equal(OCCASION_MAX_TICKETS)
-      expect(occasion.date).to.be.equal(OCCASION_DATE)
-      expect(occasion.time).to.be.equal(OCCASION_TIME)
-      expect(occasion.location).to.be.equal(OCCASION_LOCATION)
+  describe("events", () => {
+    it("sets events", async () => {
+      expect(await tokenMaster.totalEvents()).to.equal(1)
     })
 
-    it('Updates occasions count', async () => {
-      const totalOccasions = await tokenMaster.totalOccasions()
-      expect(totalOccasions).to.be.equal(1)
+    it("event list printed", async () => {
+      let eventss = await tokenMaster.getEvent(1);
+      console.log(eventss.id);
+      console.log(eventss.name);
+      console.log(eventss.cost);
+      console.log(eventss.maxTickets);
+      console.log(eventss.date);
+      console.log(eventss.time);
+      console.log(eventss.location);
+      console.log(eventss.tickets);
     })
   })
 
   describe("Minting", () => {
+
     const ID = 1
     const SEAT = 50
-    const AMOUNT = ethers.utils.parseUnits('1', 'ether')
+    const AMOUNT = ethers.utils.parseUnits('0.2', 'ether');
 
     beforeEach(async () => {
-      const transaction = await tokenMaster.connect(buyer).mint(ID, SEAT, { value: AMOUNT })
+      let transaction = await tokenMaster.connect(buyer).mint(ID, SEAT, { value: AMOUNT })
       await transaction.wait()
     })
 
-    it('Updates ticket count', async () => {
-      const occasion = await tokenMaster.getOccasion(1)
-      expect(occasion.tickets).to.be.equal(OCCASION_MAX_TICKETS - 1)
+    it("seats updated", async () => {
+      let seats = await tokenMaster.getEvent(ID);
+      expect(seats.tickets).to.equal(99); 
     })
 
-    it('Updates buying status', async () => {
-      const status = await tokenMaster.hasBought(ID, buyer.address)
-      expect(status).to.be.equal(true)
+    it("seat owner", async () => {
+      let seatOwner = await tokenMaster.seatTaken(ID, SEAT);
+      expect(seatOwner).to.equal(buyer.address);
     })
 
-    it('Updates seat status', async () => {
-      const owner = await tokenMaster.seatTaken(ID, SEAT)
-      expect(owner).to.equal(buyer.address)
+    it("has booked", async () => {
+      expect(await tokenMaster.hasBooked(ID, buyer.address)).to.equal(true)
     })
 
-    it('Updates overall seating status', async () => {
-      const seats = await tokenMaster.getSeatsTaken(ID)
-      expect(seats.length).to.equal(1)
-      expect(seats[0]).to.equal(SEAT)
+    it("seats taken", async () => {
+      let seatsTaken = await tokenMaster.getSeats(ID);
+      console.log(seatsTaken);
+      expect(seatsTaken.length).to.equal(1);
+      expect(seatsTaken[0]).to.equal(SEAT);
     })
 
-    it('Updates the contract balance', async () => {
-      const balance = await ethers.provider.getBalance(tokenMaster.address)
-      expect(balance).to.be.equal(AMOUNT)
+    it("balance", async () => {
+      let balance = await ethers.provider.getBalance(tokenMaster.address)
+      console.log(await ethers.utils.formatUnits(balance, 'ether'));
+      expect(balance).to.equal(AMOUNT);
     })
+
   })
 
   describe("Withdrawing", () => {
     const ID = 1
     const SEAT = 50
-    const AMOUNT = ethers.utils.parseUnits("1", 'ether')
-    let balanceBefore
-
+    const AMOUNT = ethers.utils.parseUnits('0.2', 'ether');
+    let providerBalance;
+    
     beforeEach(async () => {
-      balanceBefore = await ethers.provider.getBalance(deployer.address)
-
+      providerBalance = await ethers.provider.getBalance(provider.address);
       let transaction = await tokenMaster.connect(buyer).mint(ID, SEAT, { value: AMOUNT })
       await transaction.wait()
 
-      transaction = await tokenMaster.connect(deployer).withdraw()
-      await transaction.wait()
+      transaction  =await tokenMaster.connect(provider).withdraw();
+      await transaction.wait();
     })
 
-    it('Updates the owner balance', async () => {
-      const balanceAfter = await ethers.provider.getBalance(deployer.address)
-      expect(balanceAfter).to.be.greaterThan(balanceBefore)
+    it("Provider balance updated", async () => {
+      expect(await ethers.provider.getBalance(provider.address)).to.be.greaterThan(providerBalance)
     })
 
-    it('Updates the contract balance', async () => {
-      const balance = await ethers.provider.getBalance(tokenMaster.address)
-      expect(balance).to.equal(0)
+    it("Smart contract address", async () => {
+      expect(await ethers.provider.getBalance(tokenMaster.address)).to.equal(0);
     })
   })
+  
 })

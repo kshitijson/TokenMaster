@@ -1,83 +1,84 @@
-const hre = require("hardhat")
+const { ethers } = require("hardhat");
 
-const tokens = (n) => {
-  return ethers.utils.parseUnits(n.toString(), 'ether')
+const costEthers = (n) => {
+    return ethers.utils.parseUnits(String(n), "ether");
 }
 
-async function main() {
-  // Setup accounts & variables
-  const [deployer] = await ethers.getSigners()
-  const NAME = "TokenMaster"
-  const SYMBOL = "TM"
+const main = async () => {
 
-  // Deploy contract
-  const TokenMaster = await ethers.getContractFactory("TokenMaster")
-  const tokenMaster = await TokenMaster.deploy(NAME, SYMBOL)
-  await tokenMaster.deployed()
+    const [master] = await ethers.getSigners();  // Get the master signer which is the owner
 
-  console.log(`Deployed TokenMaster Contract at: ${tokenMaster.address}\n`)
+    const _name_ = "TokenMaster";  // Name pof the token
+    const _symbol_ = "TM";   // Symbol of the token
 
-  // List 6 events
-  const occasions = [
-    {
-      name: "UFC Miami",
-      cost: tokens(3),
-      tickets: 0,
-      date: "May 31",
-      time: "6:00PM EST",
-      location: "Miami-Dade Arena - Miami, FL"
-    },
-    {
-      name: "ETH Tokyo",
-      cost: tokens(1),
-      tickets: 125,
-      date: "Jun 2",
-      time: "1:00PM JST",
-      location: "Tokyo, Japan"
-    },
-    {
-      name: "ETH Privacy Hackathon",
-      cost: tokens(0.25),
-      tickets: 200,
-      date: "Jun 9",
-      time: "10:00AM TRT",
-      location: "Turkey, Istanbul"
-    },
-    {
-      name: "Dallas Mavericks vs. San Antonio Spurs",
-      cost: tokens(5),
-      tickets: 0,
-      date: "Jun 11",
-      time: "2:30PM CST",
-      location: "American Airlines Center - Dallas, TX"
-    },
-    {
-      name: "ETH Global Toronto",
-      cost: tokens(1.5),
-      tickets: 125,
-      date: "Jun 23",
-      time: "11:00AM EST",
-      location: "Toronto, Canada"
+    const TokenMaster = await ethers.getContractFactory("TokenMaster");
+    const tokenMaster = await TokenMaster.deploy(_name_, _symbol_)
+    await tokenMaster.deployed();
+
+    console.log(`Contract deployed at address ${tokenMaster.address}\n`)
+
+    const events = [
+        {
+            name: "Oppenheimer",
+            cost: costEthers(2),
+            maxTickets: 200,
+            date: "12 July",
+            time: "10:00 PM IST",
+            location: "PVR, Phoenix, Kurla"
+        },
+        {
+            name: "K-POP concert",
+            cost: costEthers(0.2),
+            maxTickets: 0,
+            date: "20 May",
+            time: "5:00 PM IST",
+            location: "DY Patil Stadium, Nerul"
+        },
+        {
+            name: "Ballon Dor Ceremony",
+            cost: costEthers(1),
+            maxTickets: 500,
+            date: "1 July",
+            time: "7:00 PM CET",
+            location: "Theatre du Chatelet, Paris"
+        },
+        {
+            name: "UEFA Finals -- Manchester City vs Inter Milan",
+            cost: costEthers(0.5),
+            maxTickets: 800,
+            date: "11 June",
+            time: "9:00 PM CET",
+            location: "Atatürk Olympic Stadium, Istanbul, Turkey"
+        },
+        {
+            name: "MET Gala",
+            cost: costEthers(3),
+            maxTickets: 0,
+            date: "10 May",
+            time: "5:00 PM EST",
+            location: "The Metropolitan Museum of Art, NYC"
+        },
+    ]
+
+    for (let i = 0; i <= events.length-1; i++) {
+        const transaction = await tokenMaster.connect(master).list(
+            events[i].name,
+            events[i].cost,
+            events[i].maxTickets,
+            events[i].date,
+            events[i].time,
+            events[i].location,
+        )
+
+        await transaction.wait()
+
+        console.log(`Listed Event ${i + 1}: ${events[i].name}`)
+
     }
-  ]
 
-  for (var i = 0; i < 5; i++) {
-    const transaction = await tokenMaster.connect(deployer).list(
-      occasions[i].name,
-      occasions[i].cost,
-      occasions[i].tickets,
-      occasions[i].date,
-      occasions[i].time,
-      occasions[i].location,
-    )
-
-    await transaction.wait()
-
-    console.log(`Listed Event ${i + 1}: ${occasions[i].name}`)
-  }
 }
 
 main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+    console.error(error);
+    process.exitCode = 1;
+  });

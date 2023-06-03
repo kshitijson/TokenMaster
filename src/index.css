@@ -196,6 +196,14 @@ header {
   outline: 2px solid var(--clr-light-blue);
 }
 
+.ant-alert-content {
+  text-align: center;
+}
+
+.ant-alert-message {
+  font-weight: bold;
+}
+
 /* ------------------------------------------------------ */
 /* -- CARDS -- */
 
@@ -331,7 +339,7 @@ header {
 /* ------------------------------------------------------ */
 /* -- SEAT CHART -- */
 
-.occasion {
+.event {
   width: 100vw;
   height: 100vh;
   background-color: rgba(0, 0, 0, 0.7);
@@ -342,7 +350,7 @@ header {
   transform: translate(-50%, -50%);
 }
 
-.occasion__seating {
+.event__seating {
   display: grid;
   gap: 5px;
   grid-template-columns: repeat(25, 1fr);
@@ -365,7 +373,7 @@ header {
   overflow-x: scroll;
 }
 
-.occasion__seating h1 {
+.event__seating h1 {
   grid-column: 1 / span 27;
   grid-row: 1;
 
@@ -373,7 +381,7 @@ header {
   font-weight: 300;
 }
 
-.occasion__close {
+.event__close {
   grid-column: 27 / span 1;
   grid-row: 1;
 
@@ -389,19 +397,19 @@ header {
   transition: 250ms ease all;
 }
 
-.occasion__close:hover {
+.event__close:hover {
   background: rgba(255, 255, 255, 1);
   border: 1px solid var(--clr-white);
 }
 
-.occasion__close img {
+.event__close img {
   width: 25px;
   height: 25px;
 }
 
-.occasion__stage,
-.occasion__spacer--1,
-.occasion__spacer--2 {
+.event__stage,
+.event__spacer--1,
+.event__spacer--2 {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -410,7 +418,7 @@ header {
   color: var(--clr-white);
 }
 
-.occasion__stage {
+.event__stage {
   grid-column: 1 / span 27;
   grid-row: 2;
 
@@ -420,26 +428,26 @@ header {
   border-radius: 0 0 24px 24px;
 }
 
-.occasion__spacer--1,
-.occasion__spacer--2 {
+.event__spacer--1,
+.event__spacer--2 {
   min-width: 30px;
   margin: 0 5px;
   border: 1px solid black;
   writing-mode: vertical-lr;
 }
 
-.occasion__spacer--1 {
+.event__spacer--1 {
   grid-column: 6 / span 1;
   grid-row: 3 / span 10;
 }
 
-.occasion__spacer--2 {
+.event__spacer--2 {
   grid-column: 22 / span 1;
   grid-row: 3 / span 10;
 }
 
-.occasion__seats,
-.occasion__seats--taken {
+.event__seats,
+.event__seats--taken {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -459,7 +467,7 @@ header {
   transition: 250ms ease all;
 }
 
-.occasion__seats:hover {
+.event__seats:hover {
   background: var(--clr-white);
   color: var(--clr-black);
 
@@ -467,7 +475,7 @@ header {
   font-weight: 700;
 }
 
-.occasion__seats--taken {
+.event__seats--taken {
   background-color: rgba(34, 64, 109, 0.7);
 }
 

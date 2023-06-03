@@ -1,8 +1,8 @@
 import { ethers } from 'ethers'
 
-const Card = ({ occasion, toggle, setToggle, setOccasion }) => {
+const Card = ({ event, toggle, setToggle, setEvent }) => {
   const togglePop = () => {
-    setOccasion(occasion)
+    setEvent(event)
     toggle ? setToggle(false) : setToggle(true)
   }
 
@@ -10,25 +10,25 @@ const Card = ({ occasion, toggle, setToggle, setOccasion }) => {
     <div className='card'>
       <div className='card__info'>
         <p className='card__date'>
-          <strong>{occasion.date}</strong><br />{occasion.time}
+          <strong>{event.date}</strong><br />{event.time}
         </p>
 
         <h3 className='card__name'>
-          {occasion.name}
+          {event.name}
         </h3>
 
         <p className='card__location'>
-          <small>{occasion.location}</small>
+          <small>{event.location}</small>
         </p>
 
         <p className='card__cost'>
           <strong>
-            {ethers.utils.formatUnits(occasion.cost.toString(), 'ether')}
+            {ethers.utils.formatUnits(event.cost.toString(), 'ether')}
           </strong>
           ETH
         </p>
 
-        {occasion.tickets.toString() === "0" ? (
+        {event.tickets.toString() === "0" ? (
           <button
             type="button"
             className='card__button--out'

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { message } from 'antd'
 
 // Import Components
 import Seat from './Seat'
@@ -6,23 +7,37 @@ import Seat from './Seat'
 // Import Assets
 import close from '../assets/close.svg'
 
-const SeatChart = ({ occasion, tokenMaster, provider, setToggle }) => {
+const SeatChart = ({ event, tokenMaster, provider, setToggle }) => {
+
+  const [messageApi, contextHolder] = message.useMessage()
+
   const [seatsTaken, setSeatsTaken] = useState(false)
   const [hasSold, setHasSold] = useState(false)
 
   const getSeatsTaken = async () => {
-    const seatsTaken = await tokenMaster.getSeatsTaken(occasion.id)
+    const seatsTaken = await tokenMaster.getSeats(event.id)
     setSeatsTaken(seatsTaken)
   }
 
   const buyHandler = async (_seat) => {
     setHasSold(false)
 
-    const signer = await provider.getSigner()
-    const transaction = await tokenMaster.connect(signer).mint(occasion.id, _seat, { value: occasion.cost })
-    await transaction.wait()
+    try {
+      const signer = await provider.getSigner()
+      const transaction = await tokenMaster.connect(signer).mint(event.id, _seat, { value: event.cost })
+      await transaction.wait()
+      messageApi.open({
+        type: 'success',
+        content: 'Seat booked successfully',
+      });
+      setHasSold(true)
+    } catch (error) {
+      if (error.code === 4001) {
+        console.log("transaction rejected")
+        setHasSold(false)
+      }
+    }
 
-    setHasSold(true)
   }
 
   useEffect(() => {
@@ -30,15 +45,17 @@ const SeatChart = ({ occasion, tokenMaster, provider, setToggle }) => {
   }, [hasSold])
 
   return (
-    <div className="occasion">
-      <div className="occasion__seating">
-        <h1>{occasion.name} Seating Map</h1>
+    <>
+    {contextHolder}
+    <div className="event">
+      <div className="event__seating">
+        <h1>{event.name} Seating Map</h1>
 
-        <button onClick={() => setToggle(false)} className="occasion__close">
+        <button onClick={() => setToggle(false)} className="event__close">
           <img src={close} alt="Close" />
         </button>
 
-        <div className="occasion__stage">
+        <div className="event__stage">
           <strong>STAGE</strong>
         </div>
 
@@ -56,11 +73,11 @@ const SeatChart = ({ occasion, tokenMaster, provider, setToggle }) => {
           />
         )}
 
-        <div className="occasion__spacer--1 ">
+        <div className="event__spacer--1 ">
           <strong>WALKWAY</strong>
         </div>
 
-        {seatsTaken && Array(Number(occasion.maxTickets) - 50).fill(1).map((e, i) =>
+        {seatsTaken && Array(Number(event.maxTickets) - 50).fill(1).map((e, i) =>
           <Seat
             i={i}
             step={26}
@@ -74,14 +91,14 @@ const SeatChart = ({ occasion, tokenMaster, provider, setToggle }) => {
           />
         )}
 
-        <div className="occasion__spacer--2">
+        <div className="event__spacer--2">
           <strong>WALKWAY</strong>
         </div>
 
         {seatsTaken && Array(25).fill(1).map((e, i) =>
           <Seat
             i={i}
-            step={(Number(occasion.maxTickets) - 24)}
+            step={(Number(event.maxTickets) - 24)}
             columnStart={22}
             maxColumns={5}
             rowStart={2}
@@ -93,6 +110,7 @@ const SeatChart = ({ occasion, tokenMaster, provider, setToggle }) => {
         )}
       </div>
     </div >
+  </>
   );
 }
 

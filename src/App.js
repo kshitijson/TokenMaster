@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ethers } from 'ethers'
+import { Alert, Space } from 'antd';
 
 // Components
 import Navigation from './components/Navigation'
@@ -18,12 +19,15 @@ function App() {
   const [account, setAccount] = useState(null)
 
   const [tokenMaster, setTokenMaster] = useState(null)
-  const [occasions, setOccasions] = useState([])
+  const [events, setEvents] = useState([])
 
-  const [occasion, setOccasion] = useState({})
+  const [event, setEvent] = useState({})
   const [toggle, setToggle] = useState(false)
 
+  const [err, setErr] = useState(null)
+
   const loadBlockchainData = async () => {
+    setErr(null);
     const provider = new ethers.providers.Web3Provider(window.ethereum)
     setProvider(provider)
 
@@ -31,15 +35,15 @@ function App() {
     const tokenMaster = new ethers.Contract(config[network.chainId].TokenMaster.address, TokenMaster, provider)
     setTokenMaster(tokenMaster)
 
-    const totalOccasions = await tokenMaster.totalOccasions()
-    const occasions = []
+    const totalEvents = await tokenMaster.totalEvents()
+    const events = []
 
-    for (var i = 1; i <= totalOccasions; i++) {
-      const occasion = await tokenMaster.getOccasion(i)
-      occasions.push(occasion)
+    for (var i = 1; i <= totalEvents; i++) {
+      const event = await tokenMaster.getEvent(i)
+      events.push(event)
     }
 
-    setOccasions(occasions)
+    setEvents(events)
 
     window.ethereum.on('accountsChanged', async () => {
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
@@ -52,27 +56,50 @@ function App() {
     loadBlockchainData()
   }, [])
 
+  const handleNavbarError = () => {
+    setErr(
+      <Space
+        direction="vertical"
+        style={{
+          width: '100%',
+        }}
+      >
+        <Alert
+        message="Error fetching account data"
+        description="Check if you have logged in to metamask"
+        type="warning"
+        showIcon
+        closable
+      />
+    </Space>
+    )
+  }
+
   return (
     <div>
       <header>
-        <Navigation account={account} setAccount={setAccount} />
+        <Navigation account={account} setAccount={setAccount} onError={handleNavbarError}/>
 
         <h2 className="header__title"><strong>Event</strong> Tickets</h2>
       </header>
 
+      <div>
+        {err}
+      </div>
+
       <Sort />
 
       <div className='cards'>
-        {occasions.map((occasion, index) => (
+        {events.map((event, index) => (
           <Card
-            occasion={occasion}
+            event={event}
             id={index + 1}
             tokenMaster={tokenMaster}
             provider={provider}
             account={account}
             toggle={toggle}
             setToggle={setToggle}
-            setOccasion={setOccasion}
+            setEvent={setEvent}
             key={index}
           />
         ))}
@@ -80,7 +107,7 @@ function App() {
 
       {toggle && (
         <SeatChart
-          occasion={occasion}
+          event={event}
           tokenMaster={tokenMaster}
           provider={provider}
           setToggle={setToggle}
